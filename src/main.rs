@@ -5,6 +5,11 @@ async fn main() -> GResult<()> {
     let mut eb = EntityBuilder::new();
     let mut g = init(&mut eb).await?;
 
+    dlog!(Level::Info, "ENTITY IDS\n\tPLAYER: {:?}\n\tNPCS: {:?}",
+        g.em.ref_player().id(), 
+        g.em.ref_npcs().iter().map(NPC::id).collect::<Vec<_>>()
+    );
+
     loop {
         let screen_w = screen_width();        
         let screen_h = screen_height();
