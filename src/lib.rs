@@ -18,7 +18,23 @@ impl Game {
         Game { em, dm, um }
     }
 
-    pub fn handle_updates_and_collisions(&mut self) {
+    pub fn init_view_and_update_entites(&mut self) {
+        self.um.draw_letterboxing_absolute();
+        self.handle_entity_updates_and_collisions();
+        let camera = self.um.build_player_camera(
+            self.em.ref_player().position()
+        );
+        dlog!(Level::Debug, &camera);
+        self.um.lifecycle_flush_and_end();
+        set_camera(&camera);
+        draw_rectangle_lines(0.0, 0.0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, 1.0, BLACK);
+    }
+
+    pub fn draw_loaded_entites(&self) {
+        self.em.draw_loaded();
+    }
+    
+    fn handle_entity_updates_and_collisions(&mut self) {
         let dt = get_frame_time();
         let player = &mut self.em.player;
         let npcs = &mut self.em.npcs;
@@ -49,10 +65,11 @@ impl Game {
     }
 
     pub fn handle_ui(&mut self) {
-        UIManager::draw_game_borders();
+        set_default_camera();
+
         if let Some(dpart) = self.dm.handle_dialogue() {
-            UIManager::draw_dialogue_frame();
-            UIManager::draw_dialogue(dpart);
+            self.um.draw_dialogue_frame_absolute();
+            self.um.draw_dialogue_text_absolute(dpart);
         }
     }
 }

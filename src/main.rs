@@ -13,24 +13,10 @@ async fn main() -> GResult<()> {
     );
 
     loop {
-        let screen_w = screen_width();        
-        let screen_h = screen_height();
-        let dpi_scale = screen_dpi_scale();
-
-        let mut camera = build_camera(screen_w, screen_h, dpi_scale);
-        dlog!(Level::Trace, &camera);
-
-        g.handle_updates_and_collisions();
-        camera.target = g.em.ref_player().position();
-
+        set_default_camera(); // Not strictly necessary if the end flushes it (it does) but avoids confusion during development
         clear_background(WHITE);
-        set_camera(&camera);
-        draw_text("Camera Reset", 20.0, 40.0, 30.0, RED);
-        draw_rectangle_lines(0.0, 0.0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, 2.0, BLACK);
-
-        g.em.draw_loaded();
-
-        set_default_camera();
+        g.init_view_and_update_entites();
+        g.draw_loaded_entites();
         g.handle_ui();
         next_frame().await
     }
