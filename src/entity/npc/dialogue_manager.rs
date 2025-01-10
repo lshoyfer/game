@@ -13,12 +13,18 @@ impl DialogueState {
         DialogueState { dialogue, index: 0, eid }
     }
 
-    pub fn read(&self) -> Option<&str> {
-        if self.index >= self.dialogue.len() {
-            None
-        } else {
-            Some(&self.dialogue[self.index])
-        }
+    // Seperating into `is_readable` and `read`
+    // plays nicer with the borrow checker
+    #[inline]
+    pub fn is_readable(&self) -> bool {
+        self.index < self.dialogue.len()
+    }
+
+    /// Safety
+    /// Check if is_readable before reading
+    /// due to direct array access
+    pub fn read(&self) -> &str {
+        &self.dialogue[self.index]
     }
 
     pub fn advance(&mut self) {
@@ -47,18 +53,21 @@ impl DialogueManager {
         }
     }
 
-    pub fn handle_dialogue(&mut self) {
-        if let Some(state) = self.state.as_mut() {
+    /// Returns dialogue str to be played if there is dialogue to play
+    pub fn handle_dialogue(&mut self) -> Option<&str> {
+        if let Some(mut_state) = self.state.as_mut() {
             if is_key_pressed(KeyCode::Enter) {
-                state.advance()
-            } 
-            if let Some(dpart) = state.read() {
-                draw_text(dpart, 0.0, 600.0, 16.0, BLACK);
-            } else {
-                self.state = None;
+                mut_state.advance();
+            }
+            if mut_state.is_readable() {
+                return self.state.as_ref().map(DialogueState::read)
             }
         }
+        // If here, either was already None or unreadable, so consume state to end dialogue
+        self.state = None;
+        None
     }
+
 
     pub fn has_loaded_dialogue(&self) -> bool {
         self.state.is_some()

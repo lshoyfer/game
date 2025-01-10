@@ -1,24 +1,5 @@
-/// /* FIXME */
-// There's no way to control the log level of microquad's environment
-// and I can't be fucked to switch to a real logger environment for now
-// so I prepend the respective log level to the string format so
-// that I can grep it out in my shell with shitty scripts as an interim
-// cruft filter solution. There are also some highly terrible things
-// going on with the miniquad v.s. macroquad log types. Hence, this
-// function exists as that bridge.
-pub fn level_to_str(microquad_logcrate_level: macroquad::miniquad::log::Level) -> &'static str {
-    use macroquad::miniquad::log::Level;
-    match microquad_logcrate_level {
-        Level::Error => "ERROR",
-        Level::Warn => "WARN",
-        Level::Info => "INFO",
-        Level::Debug => "DEBUG",
-        Level::Trace => "TRACE"
-    }
-}
-
 #[macro_export]
-/// A mix of [`dbg!`] and [`macroquad::miniquad::log!`].
+/// A mix of [`dbg!`] and [`log::log!`].
 /// 
 /// Like [`dbg!`], returns the value of the given expression.
 /// If multiple expressions, comes back as a tuple.
@@ -58,13 +39,9 @@ macro_rules! dlog {
     // Level-only "empty" invocation, e.g.:
     //      dlog!(Level::Trace)
     ($level:expr $(,)?) => {
-        macroquad::miniquad::log!(
+        log::log!(
             $level,
-            "[{}] [{}:{}:{}]",
-            self::level_to_str($level), // FIXME
-            file!(),
-            line!(),
-            column!()
+            "",
         );
     };
 
@@ -89,16 +66,11 @@ macro_rules! dlog {
     // This also has consequences on the final arm's behavior (more info there).
     ($level:expr, $fmt:literal $(, $($args:tt)*)?) => {
         {  
-            macroquad::miniquad::log!(
+            log::log!(
                 $level,
-                "[{}] [{}:{}:{}] {}",
-                self::level_to_str($level), // FIXME
-                file!(),
-                line!(),
-                column!(),
+                "{}",
                 format_args!($fmt $(, $($args)*)?)
-            );
-            format_args!($fmt $(, $($args)*)?) 
+            )
         }
     };
 
@@ -110,13 +82,9 @@ macro_rules! dlog {
             of temporaries - https://stackoverflow.com/a/48732525/1063961 */
         match $val {
             tmp => {
-                macroquad::miniquad::log!(
+                log::log!(
                     $level,
-                    "[{}] [{}:{}:{}] {} = {:#?}",
-                    self::level_to_str($level), // FIXME
-                    file!(),
-                    line!(),
-                    column!(),
+                    "{} = {:#?}",
                     stringify!($val),
                     &tmp
                 );

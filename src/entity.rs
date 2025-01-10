@@ -90,7 +90,7 @@ impl Entity {
 //     which persists for that expression, meaning the immutable `player.bsize()` now
 //     becomes a borrow check violation, as does the `player.ref_boundary()` method call.
 //     By adding the method implementation to the `Player` type itself (via a blanket 
-//     `T: DerefMut<Target=Entity>`) as opposed to requring deref to `Entity`, we absolve
+//     `T: DerefMut<Target=Entity>`) as opposed to requiring deref to `Entity`, we absolve
 //     this issue as now it is indentical in form/behavior to our current `IsEntity` blanket
 //     impls. It does so because now `.move_by_origin_to` is a direct method call that waits
 //     to mutably borrow the receiver (`&mut self`) until after we fully compute the arguments,

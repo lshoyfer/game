@@ -2,6 +2,8 @@ use game::prelude::*;
 
 #[macroquad::main(window_conf)]
 async fn main() -> GResult<()> {
+    env_logger::try_init()?;
+
     let mut eb = EntityBuilder::new();
     let mut g = init(&mut eb).await?;
 
@@ -27,9 +29,9 @@ async fn main() -> GResult<()> {
         draw_rectangle_lines(0.0, 0.0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, 2.0, BLACK);
 
         g.em.draw_loaded();
-        g.handle_ui();
 
         set_default_camera();
+        g.handle_ui();
         next_frame().await
     }
 }

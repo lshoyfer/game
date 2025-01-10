@@ -1,3 +1,6 @@
+pub mod dialogue_manager;
+pub use dialogue_manager::*;
+
 use crate::prelude::*;
 
 pub struct NPC {

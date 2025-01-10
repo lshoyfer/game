@@ -14,7 +14,8 @@ pub async fn init(eb: &mut EntityBuilder) -> GResult<Game> {
     let npcs = eb.init_npcs().await?;
     let em = EntityManager::from_parts(player, npcs);
     let dm = DialogueManager::new();
-    Ok(Game::from_parts(em, dm))
+    let um = UIManager::new();
+    Ok(Game::from_parts(em, dm, um))
 }
 
 struct VResTranslationVals {
