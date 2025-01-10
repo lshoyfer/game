@@ -25,16 +25,6 @@
 /// dlog!(Level::Debug, dpi_scale, "Foo {:?} {:?}", lb_offsets, lb_scales);
 /// dlog!(Level::Info, dpi_scale, zoom, 1, lb_offsets, lb_scales);
 /// ```
-/// See comments inline of the implementation for more details.
-/// 
-/// /* REVIEW */
-/// There are too many comments because 
-/// 1. I was thinking out loud and 
-/// 2. I probably will actually implement the procedural macro
-/// the descriptions will be useful for me then and thus 
-/// 3. May as well have this in the stream at some point, 
-/// and I will trim it eventually regardless of whether the 
-/// procedural macro exists.
 macro_rules! dlog {
     // Level-only "empty" invocation, e.g.:
     //      dlog!(Level::Trace)
@@ -49,21 +39,6 @@ macro_rules! dlog {
     //      dlog!(Level::Debug, "Foo {:?} {:?}", arg1, arg2)
     // OR in degenerative cases, level + string literal, e.g.:
     //      dlog!(Level::Debug, "Literal")
-    // So one may except in these cases a `[...] "Literal" = Literal` type output
-    // as in the next branch but it will output `[...] Literal`.
-    // This is honestly desirable because it lets me use dlog for
-    // inserts such as "HERE" + "HERE2" although not necessary
-    // since log! exists but may as well since this works and gives
-    // the dbg-type formatting -- who knows if that's "desirable."
-    // Also, non-string literals don't work, e.g.:
-    //      dlog!(Level::Trace, 1);
-    // This has consequences on the final arm's behavior (more info there).
-    // One may also expect to use this macro as in the final arm's recursive
-    // nature, but if they pass in a string literal without any args
-    // (i.e. done without the concious intention of str formatting)
-    // as the first arg after level, it will match this arm and break. I
-    // may eventually add a procedural part to this macro to address this. 
-    // This also has consequences on the final arm's behavior (more info there).
     ($level:expr, $fmt:literal $(, $($args:tt)*)?) => {
         {  
             log::log!(
@@ -99,27 +74,4 @@ macro_rules! dlog {
     ($level:expr, $($val:expr),+ $(,)?) => {
         ($(dlog!($level, $val)),+,)
     };
-
-    /* (Useful info alternative impl) Level + n-exprs, e.g.:
-            dlog!(Level::Warn, String::new(), vec![], variable)
-        This impl plays worse with non-arg literals but is 
-        more expressive with allowing a final nested "arg-type"
-        invocation as the last expr group, e.g. becomes legal:
-            dlog!(Level::Debug, dpi_scale, "Foo {:?} {:?}", lb_offsets, lb_scales);
-        I may eventually add a procedural part to this macro to address
-        this & merge the best of both impls, as well as allow any literal to
-        be nested, regardless of location, e.g. this doesn't work on either:
-            dlog!(Level::Info, dpi_scale, zoom, 1, lb_offsets, lb_scales);
-        Note: putting the non-arg string literal last works on either, e.g:
-            dlog!(Level::Error, dpi_scale, zoom, lb_offsets, lb_scales, "foo");
-        The reason I don't use this impl is because it outputs nested tuples instead
-        of flattened ones, and also the need for a final arg-string isn't really
-        pressing or important.
-    */
-    /* ($level:expr, $val:expr, $($rest:expr),+ $(,)?) => {
-        (
-            dlog!($level, $val),
-            dlog!($level, $($rest),*)
-        )
-    }; */
 }
