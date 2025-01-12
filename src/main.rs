@@ -18,6 +18,7 @@ async fn main() -> GResult<()> {
         g.init_view_and_update_entites();
         g.draw_loaded_entites();
         g.handle_ui();
+        g.clean_up();
         next_frame().await
     }
 }

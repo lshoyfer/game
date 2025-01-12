@@ -32,13 +32,21 @@ impl DialogueState {
     }
 }
 
+/// Custom subset of the macroquad [`TextParams`] for this game's usage that owns its [`Font`]
+pub struct OwnedTextParams {
+    pub font: Option<Font>,
+    pub font_size: u16,
+    pub color: Color,
+}
+
 pub struct DialogueManager {
     state: Option<DialogueState>,
+    text_params: Option<OwnedTextParams>,
 }
 
 impl DialogueManager {
-    pub fn new() -> Self {
-        DialogueManager { state: None }
+    pub fn from_text_params(text_params: OwnedTextParams) -> Self {
+        DialogueManager { state: None, text_params: Some(text_params) }
     }
 
     /// Loads an npc's dialogue if it isn't already loaded, but does not draw it.
@@ -54,13 +62,16 @@ impl DialogueManager {
     }
 
     /// Returns dialogue str to be played if there is dialogue to play
-    pub fn handle_dialogue(&mut self) -> Option<&str> {
+    /// as well as text params, if any, to apply
+    pub fn handle_dialogue(&mut self) -> Option<(&str, Option<TextParams>)> {
         if let Some(mut_state) = self.state.as_mut() {
             if is_key_pressed(KeyCode::Enter) {
                 mut_state.advance();
             }
             if mut_state.is_readable() {
-                return self.state.as_ref().map(DialogueState::read)
+                return self.state.as_ref().map(DialogueState::read).map(|s| {
+                    (s, self.get_text_params())
+                })
             }
         }
         // If here, either was already None or unreadable, so consume state to end dialogue
@@ -76,4 +87,15 @@ impl DialogueManager {
     pub fn has_active_dialogue(&self) -> bool {
         self.state.as_ref().is_some_and(|s| s.index > 0)
     }
+
+    fn get_text_params(&self) -> Option<TextParams> {
+        self.text_params.as_ref().map(|params| {
+            TextParams { 
+                font: params.font.as_ref(),
+                font_size: params.font_size,
+                color: params.color,
+                ..Default::default()
+            }
+        })
+    } 
 }
