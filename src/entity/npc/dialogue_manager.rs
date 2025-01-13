@@ -20,7 +20,7 @@ impl DialogueState {
         self.index < self.dialogue.len()
     }
 
-    /// Safety
+    /// ## Safety
     /// Check if is_readable before reading
     /// due to direct array access
     pub fn read(&self) -> &str {
@@ -79,11 +79,12 @@ impl DialogueManager {
         None
     }
 
-
+    // REVIEW // Unused for now
     pub fn has_loaded_dialogue(&self) -> bool {
         self.state.is_some()
     }
 
+    // REVIEW // Unused for now
     pub fn has_active_dialogue(&self) -> bool {
         self.state.as_ref().is_some_and(|s| s.index > 0)
     }

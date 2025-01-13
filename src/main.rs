@@ -5,11 +5,13 @@ async fn main() -> GResult<()> {
     env_logger::try_init()?;
 
     let mut g = Game::init().await?;
-
     dlog!(Level::Info, "ENTITY IDS\n\tPLAYER: {:?}\n\tNPCS: {:?}",
         g.em.ref_player().id(), 
         g.em.ref_npcs().iter().map(NPC::id).collect::<Vec<_>>()
     );
+
+    let test_map = parse_map_file().await?;
+    dlog!(Level::Info, test_map);
 
     loop {
         g.start_frame();

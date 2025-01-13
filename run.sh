@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: ./run.sh <log-level>
 # Valid log-levels: off | error | warn | info | debug | trace
-# This script calls cargo run, which means it runs in debug (not dev/release mode)
+# This script calls cargo run, which means it runs in debug (not release) mode.
 
 set -e
 

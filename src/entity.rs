@@ -1,18 +1,12 @@
 pub mod player;
 pub mod npc;
-pub mod bounding;
-pub mod update;
-pub mod motion;
-pub mod draw;
-pub mod debug;
+pub mod entity_builder;
+pub mod entity_manager;
 
 pub use player::*;
 pub use npc::*;
-pub use bounding::*;
-pub use update::*;
-pub use motion::*;
-pub use draw::*;
-pub use debug::*;
+pub use entity_builder::*;
+pub use entity_manager::*;
 
 use crate::prelude::*;
 
@@ -75,15 +69,6 @@ impl Entity {
     }
 }
 
-pub trait IsEntity {
-    fn ref_entity(&self) -> &Entity;
-    fn mut_entity(&mut self) -> &mut Entity;
-
-    fn id(&self) -> usize {
-        self.ref_entity().id
-    }
-}
-
 impl IsEntity for Entity {
     fn ref_entity(&self) -> &Entity {
         self
@@ -93,125 +78,68 @@ impl IsEntity for Entity {
     }
 }
 
-impl IsEntity for Player {
-    fn ref_entity(&self) -> &Entity {
-        &self.entity
-    }
-    fn mut_entity(&mut self) -> &mut Entity {
-        &mut self.entity
+pub trait IsEntity {
+    fn ref_entity(&self) -> &Entity;
+    fn mut_entity(&mut self) -> &mut Entity;
+
+    fn id(&self) -> usize {
+        self.ref_entity().id
     }
 }
 
-impl IsEntity for NPC {
-    fn ref_entity(&self) -> &Entity {
-        &self.entity
+impl<T: IsEntity> RectBounded for T {
+    fn ref_boundary(&self) -> &Rect {
+        &self.ref_entity().boundary
     }
-    fn mut_entity(&mut self) -> &mut Entity {
-        &mut self.entity
+    fn mut_boundary(&mut self) -> &mut Rect {
+        &mut self.mut_entity().boundary
     }
 }
 
-pub struct EntityBuilder {
-    eid_count: usize
+impl<T: IsEntity> Drawable for T {
+    fn draw(&self) {
+        let this = self.ref_entity();
+        let params = DrawTextureParams {
+            dest_size: Some(this.draw_size),
+            rotation: this.rotation,
+            ..Default::default()
+        };
+        let tl = this.boundary.center() - this.draw_size / 2.0; 
+        draw_texture_ex(&this.texture, tl.x, tl.y, WHITE, params);
+
+        if this.show_hitbox {
+            let Rect { x, y, w, h } = this.boundary;
+            draw_rectangle_lines(x, y, w, h, 4.0, BLACK);
+        }
+    }
 }
 
-impl EntityBuilder {
-    pub fn new() -> Self {
-        EntityBuilder { eid_count: 0 }
+impl<T: IsEntity> Teleportable for T {
+    fn move_by_origin_to(&mut self, destination: Vec2) {
+        self.mut_entity().boundary.move_to(destination);
     }
 
-    pub async fn build_entity_from_center(
-        &mut self,
-        (x, y): (f32, f32),
-        (bwidth, bheight): (f32, f32),
-        draw_size: Vec2,
-        rotation: f32,
-        texture_path: &str,
-    ) -> GResult<Entity> {
-        let e = Entity::build_from_center(
-            (x, y),
-            (bwidth, bheight),
-            draw_size,
-            rotation,
-            texture_path,
-            self.eid_count,
-        );
-        self.eid_count += 1;
-        e.await
+    fn move_by_center_to(&mut self, destination: Vec2) {
+        let boundary = &mut self.mut_entity().boundary;
+        boundary.move_to(destination - boundary.size() / 2.0);
     }
 
-    pub async fn build_entity_from_boundary(
-        &mut self,
-        boundary: Rect,
-        draw_size: Vec2,
-        rotation: f32,
-        texture_path: &str,
-    ) -> GResult<Entity> {
-        let e = Entity::build_from_boundary(
-            boundary,
-            draw_size,
-            rotation,
-            texture_path,
-            self.eid_count,
-        );
-        self.eid_count += 1;
-        e.await
+    fn offset(&mut self, offset: Vec2) {
+       self.mut_boundary().x += offset.x;
+       self.mut_boundary().y += offset.y;
+    }
+}
+
+impl<T: IsEntity> Moveable for T {
+    fn velocity(&self) -> Vec2 {
+        self.ref_entity().velocity
     }
 
-    pub async fn init_player(&mut self) -> GResult<Player> {
-        let p_entity = self.build_entity_from_center(
-            (0.0, 0.0),
-            (PLAYER_SIZE.x, PLAYER_SIZE.y),
-            PLAYER_SIZE,
-            0.0, 
-            PLAYER_SPRITE_PATH
-        ).await?;
-        Ok(Player::from_entity(p_entity))
+    fn ref_velocity(&self) -> &Vec2 {
+        &self.ref_entity().velocity
     }
     
-    pub async fn init_npcs(&mut self) -> GResult<Vec<NPC>> {
-        let npc1_entity = self.build_entity_from_center(
-            (300.0, 360.0),
-            (70.0, 70.0), 
-            vec2(120.0, 120.0),
-            0.0,
-            "assets/sprites/test_npc.png",
-            
-        ).await?;
-        let npc1 = NPC::build_from_entity(
-            npc1_entity,
-            "assets/dialogue/test_dialogue.txt"
-        ).await?;
-
-        Ok(vec![npc1])
-    }
-}
-
-pub struct EntityManager {
-    pub player: Player,
-    pub npcs: Vec<NPC>,
-}
-
-impl EntityManager {
-    /// Draws all loaded/enabled entities
-    pub fn draw_loaded(&self) {
-        self.npcs.iter().for_each(NPC::draw);
-        self.player.draw();
-    }
-
-    pub fn ref_player(&self) -> &Player {
-        &self.player
-    }
-
-    pub fn mut_player(&mut self) -> &mut Player {
-        &mut self.player
-    }
-
-    pub fn ref_npcs(&self) -> &[NPC] {
-        &self.npcs
-    }
-
-    pub fn mut_npcs(&mut self) -> &mut [NPC] {
-        &mut self.npcs
+    fn mut_velocity(&mut self) -> &mut Vec2 {
+        &mut self.mut_entity().velocity
     }
 }

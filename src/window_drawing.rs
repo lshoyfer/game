@@ -20,8 +20,6 @@ pub fn draw_dialogue_text(pset: &PSet, text: &str, maybe_params: Option<TextPara
 }
 
 /// Should be drawn with natural camera [`set_natural_camera`] for expected behavior 
-/// ## Side-Effect
-/// Begins a camera lifecycle if not currently in one.
 pub fn draw_letterboxing_natural(pset: &PSet) {
     let LetterboxDimensions { top, bottom, left, right } = pset.natural.letterbox;
     draw_rectangle(top.x, top.y, top.w, top.h, BLACK);

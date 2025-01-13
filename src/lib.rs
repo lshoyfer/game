@@ -6,6 +6,8 @@ pub mod init;
 pub mod pixel_space;
 pub mod camera;
 pub mod window_drawing;
+pub mod geometry;
+pub mod traits;
 
 use crate::prelude::*;
 
@@ -25,6 +27,7 @@ impl Game {
         self.pset = PSet::current();
         camera::set_natural_camera(&self.pset);
         clear_background(WHITE);
+        window_drawing::draw_letterboxing_natural(&self.pset);
     }
 
     pub async fn next_frame(&mut self) {
@@ -47,7 +50,6 @@ impl Game {
 
 impl Game {
     pub fn init_player_view_and_update_entites(&mut self) {
-        window_drawing::draw_letterboxing_natural(&self.pset);
         self.handle_entity_updates_and_collisions();
         camera::set_player_camera(&self.pset, self.em.ref_player().position());
         draw_rectangle_lines(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT, 1.0, BLACK);

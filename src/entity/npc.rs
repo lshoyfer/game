@@ -15,6 +15,15 @@ impl NPC {
     }
 }
 
+impl IsEntity for NPC {
+    fn ref_entity(&self) -> &Entity {
+        &self.entity
+    }
+    fn mut_entity(&mut self) -> &mut Entity {
+        &mut self.entity
+    }
+}
+
 async fn build_dialogue(dialogue_path: &str) -> GResult<Dialogue> {
     let raw = load_file(dialogue_path).await?;
     let s = String::from_utf8(raw)?;

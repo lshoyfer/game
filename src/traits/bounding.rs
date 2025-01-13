@@ -33,12 +33,3 @@ pub trait RectBounded {
         self.ref_boundary().size()
     }
 }
-
-impl<T: IsEntity> RectBounded for T {
-    fn ref_boundary(&self) -> &Rect {
-        &self.ref_entity().boundary
-    }
-    fn mut_boundary(&mut self) -> &mut Rect {
-        &mut self.mut_entity().boundary
-    }
-}
