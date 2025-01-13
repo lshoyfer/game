@@ -3,32 +3,60 @@ pub mod prelude;
 pub mod entity;
 pub mod macros;
 pub mod init;
-pub mod drawing;
+pub mod pixel_space;
+pub mod camera;
+pub mod window_drawing;
 
 use crate::prelude::*;
 
 pub struct Game {
+    pub eb: EntityBuilder,
     pub em: EntityManager,
     pub dm: DialogueManager,
-    pub um: DrawManager,
+    /// Current frame's pixel space state
+    pub pset: PSet,
 }
 
 impl Game {
-    pub fn from_parts(em: EntityManager, dm: DialogueManager, um: DrawManager) -> Self {
-        Game { em, dm, um }
+    // Will do an initial unnecessary recalculation for the first frame
+    // but avoids constant Option/MaybeUninit shenangians for every frame
+    // after if we want pset inside the Game struct
+    pub fn start_frame(&mut self) {
+        self.pset = PSet::current();
+        camera::set_natural_camera(&self.pset);
+        clear_background(WHITE);
     }
 
-    pub fn init_view_and_update_entites(&mut self) {
-        self.um.draw_letterboxing_absolute();
+    pub async fn next_frame(&mut self) {
+        next_frame().await
+    }
+}
+
+impl Game {
+    pub fn handle_ui(&mut self) {
+        let pset = &self.pset;
+        camera::set_ui_camera(pset);
+        
+        if let Some((dpart, maybe_params)) = self.dm.handle_dialogue() {
+            window_drawing::draw_dialogue_frame(pset);
+            draw_rectangle(0.,0.,100.,100.,RED);
+            window_drawing::draw_dialogue_text(pset, dpart, maybe_params);
+        }
+    }
+}
+
+impl Game {
+    pub fn init_player_view_and_update_entites(&mut self) {
+        window_drawing::draw_letterboxing_natural(&self.pset);
         self.handle_entity_updates_and_collisions();
-        self.um.set_player_camera(self.em.ref_player().position());
+        camera::set_player_camera(&self.pset, self.em.ref_player().position());
         draw_rectangle_lines(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT, 1.0, BLACK);
     }
 
     pub fn draw_loaded_entites(&self) {
         self.em.draw_loaded();
     }
-    
+
     fn handle_entity_updates_and_collisions(&mut self) {
         let dt = get_frame_time();
         let player = &mut self.em.player;
@@ -57,19 +85,5 @@ impl Game {
                 self.dm.load_dialogue(npc);
             }
         }
-    }
-
-    pub fn handle_ui(&mut self) {
-        self.um.set_ui_camera();
-
-        if let Some((dpart, maybe_params)) = self.dm.handle_dialogue() {
-            self.um.draw_dialogue_frame_ui();
-            draw_rectangle(0.,0.,100.,100.,RED);
-            self.um.draw_dialogue_text_ui(dpart, maybe_params);
-        }
-    }
-
-    pub fn clean_up(&mut self) {
-        self.um.lifecycle_flush_and_end();
     }
 }

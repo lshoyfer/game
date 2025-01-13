@@ -1,3 +1,21 @@
+//! ## Some definitions
+//! - Logical Pixels (LP) -> our game's "logical" pixel-space as defined in src/constants.rs
+//! - Physical Pixels (PP) -> a window manager's representation of the game's window in terms of actual pixels
+//!     on the screen, accounting for any dpi scaling
+//! - Macroquad Natural Pixels (NP) -> Macroquad's internal "logical" pixel-space which is just `physical pixels / dpi_scale`
+//! 
+//! We use logical pixels for most draw calls in the game including UI.
+//! We define a viewport in terms of physical pixels, translating from either the logical or natural pixel spaces. 
+//! We use our viewport from the logical to draw UI elements relatively, keeping letterboxing automatically in mind.
+//! We use both the physical window and the physical viewport translation of logical pixel space to build the letterboxing,
+//! which is then currently drawn in natural pixel space. 
+//! 
+//! //REVIEW// I should reexamine some of the specifics here, as I might not generally need natural pixels, 
+//! for they could just be an arbitrary holdout from old code I let slip in that is bloat. Or... it's useful
+//! for briding low and high dpi... Probably actually. Will have to see, but right now this is not important. 
+//!
+//! Natural pixel data is useful for draws under [`set_default_camera()`] or any equivalents which encode a window-perfect project matrix in 
+//! macroquad's internals (i.e. the viewport == the window manager's physical pixel representation).
 pub mod logical;
 pub mod physical;
 pub mod natural;
@@ -14,7 +32,7 @@ pub struct PxWindow {
     pub height: f32,
 }
 
-/// Holds set of all pixel space data used for camera management and UI drawing
+/// Holds set of all pixel space data used for camera management and drawing
 pub struct PSet {
     pub logical: LPData,
     pub physical: PPData,

@@ -193,11 +193,6 @@ pub struct EntityManager {
 }
 
 impl EntityManager {
-    pub fn from_parts(player: Player, npcs: Vec<NPC> ) -> Self {
-        EntityManager { player, npcs }
-    }
-
-    
     /// Draws all loaded/enabled entities
     pub fn draw_loaded(&self) {
         self.npcs.iter().for_each(NPC::draw);

@@ -4,8 +4,7 @@ use game::prelude::*;
 async fn main() -> GResult<()> {
     env_logger::try_init()?;
 
-    let mut eb = EntityBuilder::new();
-    let mut g = init(&mut eb).await?;
+    let mut g = Game::init().await?;
 
     dlog!(Level::Info, "ENTITY IDS\n\tPLAYER: {:?}\n\tNPCS: {:?}",
         g.em.ref_player().id(), 
@@ -13,12 +12,10 @@ async fn main() -> GResult<()> {
     );
 
     loop {
-        set_default_camera(); // Not strictly necessary if the end flushes it (it does) but avoids confusion during development
-        clear_background(WHITE);
-        g.init_view_and_update_entites();
+        g.start_frame();
+        g.init_player_view_and_update_entites();
         g.draw_loaded_entites();
         g.handle_ui();
-        g.clean_up();
-        next_frame().await
+        g.next_frame().await;
     }
 }
