@@ -23,6 +23,5 @@ pub use std::sync::Arc;
 pub use std::mem::MaybeUninit;
 pub use std::error::Error;
 pub use std::fmt::{ Debug, Display };
-
-// Other
-pub type GResult<T> = Result<T, Box<dyn Error>>;
+pub use std::num::NonZeroUsize;
+pub use std::collections::HashMap;

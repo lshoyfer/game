@@ -10,12 +10,11 @@ async fn main() -> GResult<()> {
         g.em.ref_npcs().iter().map(NPC::id).collect::<Vec<_>>()
     );
 
-    let test_map = parse_map_file().await?;
-    dlog!(Level::Info, test_map);
 
     loop {
         g.start_frame();
         g.init_player_view_and_update_entites();
+        g.draw_map().await?; // Currently will lazy-load textures -- not sure if will keep this implementation
         g.draw_loaded_entites();
         g.handle_ui();
         g.next_frame().await;

@@ -27,6 +27,9 @@ impl Game {
         );
 
         let pset = PSet::current();
-        Ok(Game { eb, em, dm, pset })
+
+        let test_map = read_map_file("assets/maps/test_map").await?;
+
+        Ok(Game { eb, em, dm, pset, map: test_map, geometry_textures: HashMap::new(), })
     }
 }
